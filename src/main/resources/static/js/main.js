@@ -70,8 +70,11 @@ function sendMessage(event) {
 
 
 function onMessageReceived(payload) {
-    var message = JSON.parse(payload.body);
+    var messageArray = JSON.parse(payload.body);
 
+    for(var i = 0; i < messageArray.length; i++)
+    {
+    	var message = messageArray[i];
     var messageElement = document.createElement('li');
 
     if(message.type === 'JOIN') {
@@ -103,7 +106,11 @@ function onMessageReceived(payload) {
     messageElement.appendChild(textElement);
 
     messageArea.appendChild(messageElement);
-    messageArea.scrollTop = messageArea.scrollHeight;
+    if( !document.getElementById("scrollLock").checked)
+    	{
+    		messageArea.scrollTop = messageArea.scrollHeight;
+    	}
+    }
 }
 
 
@@ -117,5 +124,11 @@ function getAvatarColor(messageSender) {
     return colors[index];
 }
 
+function logout()
+{
+	location.reload();
+}
+
 usernameForm.addEventListener('submit', connect, true)
 messageForm.addEventListener('submit', sendMessage, true)
+logoutForm.addEventListener('logout', logout, true)

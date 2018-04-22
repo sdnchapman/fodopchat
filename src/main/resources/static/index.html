@@ -27,9 +27,13 @@
     <div id="chat-page" class="hidden">
         <div class="chat-container">
             <div class="chat-header">
-                <h2>Fodop Chat BETA!</h2>
+                <h2>
+                		<form id="logoutForm" name="logoutForm" nameForm="logoutForm">
+                		FODOP Frog Chat ALPHA <button type="logout" class="primary" style="float: right">Log Out</button></form>
+                </h2>
+             
             </div>
-            <div class="connecting">
+             <div class="connecting">
                 Connecting...
             </div>
             <ul id="messageArea">
@@ -41,8 +45,11 @@
                         <input type="text" id="message" placeholder="Type a message..." autocomplete="off" class="form-control"/>
                         <button type="submit" class="primary">Send</button>
                     </div>
+                    <input type="checkbox" name="scrollLock" id="scrollLock" value="true" style="float: left;">Scroll Lock<br>
                 </div>
             </form>
+            
+           
         </div>
     </div>
 
