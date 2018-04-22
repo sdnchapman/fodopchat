@@ -17,18 +17,36 @@ var colors = [
 ];
 
 function connect(event) {
-    username = document.querySelector('#name').value.trim();
+   username = document.querySelector('#name').value.trim();
 
     if(username) {
-        usernamePage.classList.add('hidden');
-        chatPage.classList.remove('hidden');
+    	getChatLog(document.querySelector('#name').value.trim());
+    	
+    	
+    //    usernamePage.classList.add('hidden');
+    //   chatPage.classList.remove('hidden');
 
-        var socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
+    //    var socket = new SockJS('/ws');
+    //    stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, onConnected, onError);
+     //   stompClient.connect({}, onConnected, onError);
     }
     event.preventDefault();
+}
+
+function getChatLog(username)
+{
+	 $.ajax({url: "/getChatHistory", success: function(result){
+		 loadChatHistory(result);
+		   usernamePage.classList.add('hidden');
+	        chatPage.classList.remove('hidden');
+
+	        var socket = new SockJS('/ws');
+	        stompClient = Stomp.over(socket);
+
+	        stompClient.connect({}, onConnected, onError);
+	    }});
+
 }
 
 
@@ -71,6 +89,50 @@ function sendMessage(event) {
 
 function onMessageReceived(payload) {
     var messageArray = JSON.parse(payload.body);
+
+    for(var i = 0; i < messageArray.length; i++)
+    {
+    	var message = messageArray[i];
+    var messageElement = document.createElement('li');
+
+    if(message.type === 'JOIN') {
+        messageElement.classList.add('event-message');
+        message.content = message.sender + ' joined!';
+    } else if (message.type === 'LEAVE') {
+        messageElement.classList.add('event-message');
+        message.content = message.sender + ' left!';
+    } else {
+        messageElement.classList.add('chat-message');
+
+        var avatarElement = document.createElement('i');
+        var avatarText = document.createTextNode(message.sender[0]);
+        avatarElement.appendChild(avatarText);
+        avatarElement.style['background-color'] = getAvatarColor(message.sender);
+
+        messageElement.appendChild(avatarElement);
+
+        var usernameElement = document.createElement('span');
+        var usernameText = document.createTextNode(message.sender);
+        usernameElement.appendChild(usernameText);
+        messageElement.appendChild(usernameElement);
+    }
+
+    var textElement = document.createElement('p');
+    var messageText = document.createTextNode(message.content);
+    textElement.appendChild(messageText);
+
+    messageElement.appendChild(textElement);
+
+    messageArea.appendChild(messageElement);
+    if( !document.getElementById("scrollLock").checked)
+    	{
+    		messageArea.scrollTop = messageArea.scrollHeight;
+    	}
+    }
+}
+
+function loadChatHistory(payload) {
+    var messageArray = payload;
 
     for(var i = 0; i < messageArray.length; i++)
     {

@@ -12,6 +12,10 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.GetMapping;
 
 /**
  * Created by rajeevkumarsingh on 24/07/17.
@@ -31,33 +35,12 @@ public class ChatController {
 	@Autowired
 	private ChatLogRepository chatLogRepository;
 	
-    @MessageMapping("/chat.sendMessage")
-    @SendTo("/topic/public")
-    public Iterable<ChatMessage> sendMessage(@Payload ChatMessage chatMessage) {
-        
-    	ChatLog cLog = new ChatLog(chatMessage.getContent(), chatMessage.getSender(), chatMessage.getType().name());
-    	if(chatLogRepository.count() >= 150)
-    	{
-    		ArrayList<ChatLog> cclog = (ArrayList<ChatLog>) chatLogRepository.findAll();
-    		chatLogRepository.delete(cclog.get(0));
-    	}
-    	chatLogRepository.save(cLog);
-    	ArrayList<ChatMessage> cMessage = new ArrayList<ChatMessage>();
-    	cMessage.add(chatMessage);
-    	return cMessage;
-    }
-
-    @MessageMapping("/chat.addUser")
-    @SendTo("/topic/public")
-    public Iterable<ChatMessage> addUser(@Payload ChatMessage chatMessage,
-                               SimpMessageHeaderAccessor headerAccessor) {
-        // Add username in web socket session
-        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
-        
-        ArrayList<ChatLog> chatLog = (ArrayList<ChatLog>) chatLogRepository.findAll();
-        ChatLog cLog = new ChatLog(chatMessage.getContent(), chatMessage.getSender(), chatMessage.getType().name());
-    	chatLogRepository.save(cLog);
-    	ArrayList <ChatMessage> prevMessages = new ArrayList<ChatMessage>();
+	@GetMapping("/getChatHistory")
+    @ResponseBody
+	public Iterable<ChatMessage> getChatHistory()
+	{
+		ArrayList<ChatLog> chatLog = (ArrayList<ChatLog>) chatLogRepository.findAll();
+        ArrayList <ChatMessage> prevMessages = new ArrayList<ChatMessage>();
     	if(chatLog.size() >= 150)
     	{
     		chatLogRepository.delete(chatLog.get(0));
@@ -115,6 +98,41 @@ public class ChatController {
     		    	}
     		
     		prevMessages.add(tempMessage);
+    	}
+        return prevMessages;
+	}
+	
+    @MessageMapping("/chat.sendMessage")
+    @SendTo("/topic/public")
+    public Iterable<ChatMessage> sendMessage(@Payload ChatMessage chatMessage) {
+        
+    	ChatLog cLog = new ChatLog(chatMessage.getContent(), chatMessage.getSender(), chatMessage.getType().name());
+    	if(chatLogRepository.count() >= 150)
+    	{
+    		ArrayList<ChatLog> cclog = (ArrayList<ChatLog>) chatLogRepository.findAll();
+    		chatLogRepository.delete(cclog.get(0));
+    	}
+    	chatLogRepository.save(cLog);
+    	ArrayList<ChatMessage> cMessage = new ArrayList<ChatMessage>();
+    	cMessage.add(chatMessage);
+    	return cMessage;
+    }
+
+    @MessageMapping("/chat.addUser")
+    @SendTo("/topic/public")
+    public Iterable<ChatMessage> addUser(@Payload ChatMessage chatMessage,
+                               SimpMessageHeaderAccessor headerAccessor) {
+        // Add username in web socket session
+        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+        
+        ArrayList<ChatLog> chatLog = (ArrayList<ChatLog>) chatLogRepository.findAll();
+        ChatLog cLog = new ChatLog(chatMessage.getContent(), chatMessage.getSender(), chatMessage.getType().name());
+    	chatLogRepository.save(cLog);
+    	ArrayList <ChatMessage> prevMessages = new ArrayList<ChatMessage>();
+    	if(chatLog.size() >= 150)
+    	{
+    		chatLogRepository.delete(chatLog.get(0));
+    		chatLog.remove(0);
     	}
     	
     	prevMessages.add(chatMessage);
